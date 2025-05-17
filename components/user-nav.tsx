@@ -1,5 +1,6 @@
 "use client"
 
+import { useAuth } from "@/lib/auth-context"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
@@ -11,24 +12,48 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { LogOut, Settings, User } from "lucide-react"
+import { LogOut, Settings, User, LogIn } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 export function UserNav() {
+  const { user, signOut } = useAuth()
+  const router = useRouter()
+
+  const handleSignOut = async () => {
+    await signOut()
+    router.push('/auth/login')
+  }
+
+  const handleSignIn = () => {
+    router.push('/auth/login')
+  }
+
+  if (!user) {
+    return (
+      <Button variant="ghost" onClick={handleSignIn} className="flex items-center gap-2">
+        <LogIn className="h-4 w-4" />
+        <span>Sign In</span>
+      </Button>
+    )
+  }
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-8 w-8">
-            <AvatarImage src="/placeholder.svg" alt="User" />
-            <AvatarFallback>JD</AvatarFallback>
+            <AvatarImage src="/placeholder.svg" alt={user.email || "User"} />
+            <AvatarFallback>
+              {user.email ? user.email.substring(0, 2).toUpperCase() : "U"}
+            </AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">John Doe</p>
-            <p className="text-xs leading-none text-muted-foreground">john.doe@example.com</p>
+            <p className="text-sm font-medium leading-none">{user.email}</p>
+            <p className="text-xs leading-none text-muted-foreground">{user.id}</p>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
@@ -43,7 +68,7 @@ export function UserNav() {
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem>
+        <DropdownMenuItem onClick={handleSignOut}>
           <LogOut className="mr-2 h-4 w-4" />
           <span>Log out</span>
         </DropdownMenuItem>
